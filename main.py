@@ -145,8 +145,6 @@ size_adjust_delay = 0.15  # seconds between increments
 
 # Key state tracking for angle adjustment
 angle_step = 1  # degrees per step
-min_angle = 0
-max_angle = 359
 angle_adjust_active = False
 angle_adjust_last = 0
 angle_adjust_delay = 0.15  # seconds between increments
@@ -279,15 +277,17 @@ while True:
             keys = pygame.key.get_pressed()
             old_angle = args.angle
             if keys[pygame.K_RIGHT]:
-                args.angle = min(args.angle + angle_step, max_angle)
+                args.angle = args.angle + angle_step
                 angle_adjust_last = now
             elif keys[pygame.K_LEFT]:
-                args.angle = max(args.angle - angle_step, min_angle)
+                args.angle = args.angle - angle_step
                 angle_adjust_last = now
+            # Normalize angle to [0, 360)
+            args.angle = args.angle % 360
             if args.angle != old_angle:
                 angle_rad = math.radians(args.angle)
                 axis1_dx = math.cos(angle_rad)
-                axis1_dy = math.sin(angle_rad)
+                axis1_dy = -math.sin(angle_rad)
                 axis2_dx = -axis1_dy
                 axis2_dy = axis1_dx
                 t_min, t_max = get_axis_limits()
@@ -396,7 +396,7 @@ while True:
     if show_dev:
         fps = int(clock.get_fps())
         dev_lines = [
-            f"Angle: {int(round(args.angle))}°",
+            f"Angle: {int(round(args.angle % 180))}°",
             f"Size: {args.size} px",
             f"Speed: {args.speed} cHz",
             f"Motion: {args.motion}",
