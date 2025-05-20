@@ -6,17 +6,64 @@ import sys
 import math
 import argparse
 import time
+import json
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Eye Scan Therapy')
 parser.add_argument('--speed', type=float, default=25, help='Oscillation frequency in centihertz (default: 20)')
 parser.add_argument('--size', type=int, default=60, help='Diameter of the circle in pixels (default: 60)')
-parser.add_argument('--angle', type=float, default=0, help='Angle of the oscillation axis in degrees (default: 0)')
+parser.add_argument('--angle', type=float, default=90, help='Angle of the oscillation axis in degrees (default: 0)')
 parser.add_argument('--motion', type=str, default='sine', choices=['sine', 'triangle', 'square'], help='Oscillation type (sine, triangle, square)')
-parser.add_argument('--theme', type=str, default='ocean', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: ocean)')
+parser.add_argument('--theme', type=str, default='forest', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: ocean)')
 parser.add_argument('--axes', type=int, default=2, choices=[0, 1, 2], help='How many axes to display: 0, 1, or 2 (default: 2)')
 parser.add_argument('--fps', type=int, default=500, help='Frame rate cap (default: 500)')
 args = parser.parse_args()
+
+# Extract argparse values into variables
+angle = args.angle
+size = args.size
+speed = args.speed
+motion = args.motion
+theme_name = args.theme
+axes = args.axes
+fps_cap = args.fps
+
+# Persistent settings file
+SETTINGS_PATH = 'settings.json'
+
+# Load persistent settings if available
+if os.path.exists(SETTINGS_PATH):
+    with open(SETTINGS_PATH, 'r') as f:
+        try:
+            saved = json.load(f)
+            angle = saved.get('angle', angle)
+            size = saved.get('size', size)
+            speed = saved.get('speed', speed)
+            motion = saved.get('motion', motion)
+            theme_name = saved.get('theme', theme_name)
+            axes = saved.get('axes', axes)
+            fps_cap = saved.get('fps_cap', fps_cap)
+        except Exception:
+            pass
+else:
+    saved = {}
+
+# Save persistent settings if any changed
+def save_settings():
+    global saved
+    new_settings = {
+        'angle': angle,
+        'size': size,
+        'speed': speed,
+        'motion': motion,
+        'theme': theme_name,
+        'axes': axes,
+        'fps_cap': fps_cap
+    }
+    if new_settings != saved:
+        with open(SETTINGS_PATH, 'w') as f:
+            json.dump(new_settings, f, indent=4)
+        saved = new_settings.copy() # useful if saving multiple times per session
 
 # Color themes for minimal eyestrain
 THEMES = {
@@ -53,7 +100,7 @@ THEMES = {
 }
 
 # Select theme
-theme = THEMES[args.theme]
+theme = THEMES[theme_name]
 BACKGROUND_COLOR = theme['BACKGROUND_COLOR']
 CIRCLE_COLOR = theme['CIRCLE_COLOR']
 AXIS_COLOR = theme['AXIS_COLOR']
@@ -65,18 +112,17 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption('Eye Scan Therapy')
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
-fps_cap = args.fps
 font = pygame.font.Font("assets/fonts/Roboto-Regular.ttf", 24)
 
 # Window and geometry
 width, height = screen.get_size()
 center = (width // 2, height // 2)
-radius = args.size // 2
-angle_rad = math.radians(args.angle)
+radius = size // 2
+angle_rad = math.radians(angle)
 
 # Movement axis unit vector
 axis1_dx = math.cos(angle_rad)
-axis1_dy = math.sin(angle_rad)
+axis1_dy = -math.sin(angle_rad)
 
 # Perpendicular axis unit vector
 axis2_dx = -axis1_dy
@@ -191,10 +237,12 @@ while True:
     # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            save_settings()
             pygame.quit()
             sys.exit()
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
+                save_settings()
                 pygame.quit()
                 sys.exit()
             elif event.key == pygame.K_F1:
@@ -234,22 +282,18 @@ while True:
         now = time.time()
         if now - speed_adjust_last > speed_adjust_delay:
             keys = pygame.key.get_pressed()
-            # Save old period and elapsed before changing speed
-            old_speed = args.speed
+            old_speed = speed
             old_period = 100.0 / old_speed if old_speed > 0 else 1.0
             current_time = pygame.time.get_ticks()
             elapsed = (current_time - start_time) / 1000.0
             t_phase = (elapsed / old_period) % 1.0
             if keys[pygame.K_RIGHT]:
-                args.speed = min(args.speed + speed_step, max_speed)
+                speed = min(speed + speed_step, max_speed)
                 speed_adjust_last = now
             elif keys[pygame.K_LEFT]:
-                args.speed = max(args.speed - speed_step, min_speed)
+                speed = max(speed - speed_step, min_speed)
                 speed_adjust_last = now
-            # After changing speed, adjust start_time to preserve phase
-            new_period = 100.0 / args.speed if args.speed > 0 else 1.0
-            # new_elapsed = t_phase * new_period
-            # So, start_time = current_time - new_elapsed * 1000
+            new_period = 100.0 / speed if speed > 0 else 1.0
             new_elapsed = t_phase * new_period
             start_time = current_time - int(new_elapsed * 1000)
 
@@ -258,16 +302,15 @@ while True:
         now = time.time()
         if now - size_adjust_last > size_adjust_delay:
             keys = pygame.key.get_pressed()
-            old_size = args.size
+            old_size = size
             if keys[pygame.K_RIGHT]:
-                args.size = min(args.size + size_step, max_size)
+                size = min(size + size_step, max_size)
                 size_adjust_last = now
             elif keys[pygame.K_LEFT]:
-                args.size = max(args.size - size_step, min_size)
+                size = max(size - size_step, min_size)
                 size_adjust_last = now
-            if args.size != old_size:
-                radius = args.size // 2
-                # Recompute t_min, t_max to keep edge at window edge
+            if size != old_size:
+                radius = size // 2
                 t_min, t_max = get_axis_limits()
 
     # Handle angle adjustment if 1 is held
@@ -275,17 +318,16 @@ while True:
         now = time.time()
         if now - angle_adjust_last > angle_adjust_delay:
             keys = pygame.key.get_pressed()
-            old_angle = args.angle
+            old_angle = angle
             if keys[pygame.K_RIGHT]:
-                args.angle = args.angle + angle_step
+                angle = angle + angle_step
                 angle_adjust_last = now
             elif keys[pygame.K_LEFT]:
-                args.angle = args.angle - angle_step
+                angle = angle - angle_step
                 angle_adjust_last = now
-            # Normalize angle to [0, 360)
-            args.angle = args.angle % 360
-            if args.angle != old_angle:
-                angle_rad = math.radians(args.angle)
+            angle = angle % 360
+            if angle != old_angle:
+                angle_rad = math.radians(angle)
                 axis1_dx = math.cos(angle_rad)
                 axis1_dy = -math.sin(angle_rad)
                 axis2_dx = -axis1_dy
@@ -297,18 +339,16 @@ while True:
         now = time.time()
         if now - motion_adjust_last > motion_adjust_delay:
             keys = pygame.key.get_pressed()
-            current_index = motion_types.index(args.motion)
+            current_index = motion_types.index(motion)
             if keys[pygame.K_RIGHT]:
                 new_index = (current_index + motion_step) % len(motion_types)
-                args.motion = motion_types[new_index]
+                motion = motion_types[new_index]
                 motion_adjust_last = now
-                # Reset to start position when motion type changes
                 start_time = pygame.time.get_ticks()
             elif keys[pygame.K_LEFT]:
                 new_index = (current_index - motion_step) % len(motion_types)
-                args.motion = motion_types[new_index]
+                motion = motion_types[new_index]
                 motion_adjust_last = now
-                # Reset to start position when motion type changes
                 start_time = pygame.time.get_ticks()
 
     # Handle axes amount adjustment if 6 is held
@@ -316,14 +356,14 @@ while True:
         now = time.time()
         if now - axes_adjust_last > axes_adjust_delay:
             keys = pygame.key.get_pressed()
-            current_index = axes_options.index(args.axes)
+            current_index = axes_options.index(axes)
             if keys[pygame.K_RIGHT]:
                 new_index = (current_index + axes_step) % len(axes_options)
-                args.axes = axes_options[new_index]
+                axes = axes_options[new_index]
                 axes_adjust_last = now
             elif keys[pygame.K_LEFT]:
                 new_index = (current_index - axes_step) % len(axes_options)
-                args.axes = axes_options[new_index]
+                axes = axes_options[new_index]
                 axes_adjust_last = now
 
     # Handle theme adjustment if 5 is held
@@ -331,12 +371,11 @@ while True:
         now = time.time()
         if now - theme_adjust_last > theme_adjust_delay:
             keys = pygame.key.get_pressed()
-            current_index = THEME_NAMES.index(args.theme)
+            current_index = THEME_NAMES.index(theme_name)
             if keys[pygame.K_RIGHT]:
                 new_index = (current_index + theme_step) % len(THEME_NAMES)
-                args.theme = THEME_NAMES[new_index]
-                # Update theme colors live
-                theme = THEMES[args.theme]
+                theme_name = THEME_NAMES[new_index]
+                theme = THEMES[theme_name]
                 BACKGROUND_COLOR = theme['BACKGROUND_COLOR']
                 CIRCLE_COLOR = theme['CIRCLE_COLOR']
                 AXIS_COLOR = theme['AXIS_COLOR']
@@ -344,9 +383,8 @@ while True:
                 theme_adjust_last = now
             elif keys[pygame.K_LEFT]:
                 new_index = (current_index - theme_step) % len(THEME_NAMES)
-                args.theme = THEME_NAMES[new_index]
-                # Update theme colors live
-                theme = THEMES[args.theme]
+                theme_name = THEME_NAMES[new_index]
+                theme = THEMES[theme_name]
                 BACKGROUND_COLOR = theme['BACKGROUND_COLOR']
                 CIRCLE_COLOR = theme['CIRCLE_COLOR']
                 AXIS_COLOR = theme['AXIS_COLOR']
@@ -369,9 +407,9 @@ while True:
     current_time = pygame.time.get_ticks()
     elapsed = (current_time - start_time) / 1000.0
     axis_length = t_max - t_min
-    period = 100.0 / args.speed if args.speed > 0 else 1.0
+    period = 100.0 / speed if speed > 0 else 1.0
     t = (elapsed / period) % 1.0
-    pos_factor = osc_func(t, args.motion)
+    pos_factor = osc_func(t, motion)
     pos = t_min + pos_factor * (t_max - t_min)
     cx = int(center[0] + axis1_dx * pos)
     cy = int(center[1] + axis1_dy * pos)
@@ -384,9 +422,9 @@ while True:
     axis2_a = (int(center[0] - axis2_dx * axis_len), int(center[1] - axis2_dy * axis_len))
     axis2_b = (int(center[0] + axis2_dx * axis_len), int(center[1] + axis2_dy * axis_len))
 
-    if args.axes == 1:
+    if axes == 1:
         pygame.draw.aaline(screen, AXIS_COLOR, axis1_a, axis1_b, 1)
-    elif args.axes == 2:
+    elif axes == 2:
         pygame.draw.aaline(screen, AXIS_COLOR, axis1_a, axis1_b, 1)
         pygame.draw.aaline(screen, AXIS_COLOR, axis2_a, axis2_b, 1)
 
@@ -396,12 +434,12 @@ while True:
     if show_dev:
         fps = int(clock.get_fps())
         dev_lines = [
-            f"Angle: {int(round(args.angle % 180))}°",
-            f"Size: {args.size} px",
-            f"Speed: {args.speed} cHz",
-            f"Motion: {args.motion}",
-            f"Theme: {args.theme}",
-            f"Axes: {args.axes}",
+            f"Angle: {int(round(angle % 180))}°",
+            f"Size: {size} px",
+            f"Speed: {speed} cHz",
+            f"Motion: {motion}",
+            f"Theme: {theme_name}",
+            f"Axes: {axes}",
             f"FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
