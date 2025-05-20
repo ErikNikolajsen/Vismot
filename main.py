@@ -123,7 +123,7 @@ def osc_func(t, motion_type):
     elif motion_type == 'triangle':
         return 1 - abs(2 * t - 1)
     elif motion_type == 'square':
-        return 1.0 if t < 0.5 else 0.0
+        return 0.0 if t < 0.5 else 1.0
     else:
         return t
 
@@ -150,6 +150,35 @@ max_angle = 359
 angle_adjust_active = False
 angle_adjust_last = 0
 angle_adjust_delay = 0.15  # seconds between increments
+
+# Key state tracking for motion type adjustment
+motion_types = ['sine', 'triangle', 'square']
+motion_step = 1  # index step
+motion_adjust_active = False
+motion_adjust_last = 0
+motion_adjust_delay = 0.15  # seconds between increments
+
+# Key state tracking for axes adjustment
+axes_options = [0, 1, 2]
+axes_step = 1
+axes_adjust_active = False
+axes_adjust_last = 0
+axes_adjust_delay = 0.15  # seconds between increments
+
+# Key state tracking for theme adjustment
+THEME_NAMES = list(THEMES.keys())
+theme_step = 1
+theme_adjust_active = False
+theme_adjust_last = 0
+theme_adjust_delay = 0.15  # seconds between increments
+
+# Key state tracking for fps cap adjustment
+fps_step = 10
+min_fps = 30
+max_fps = 1000
+fps_adjust_active = False
+fps_adjust_last = 0
+fps_adjust_delay = 0.15  # seconds between increments
 
 # Simulation loop
 show_dev = False
@@ -178,6 +207,14 @@ while True:
                 size_adjust_active = True
             elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
                 angle_adjust_active = True
+            elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
+                motion_adjust_active = True
+            elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
+                axes_adjust_active = True
+            elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
+                theme_adjust_active = True
+            elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
+                fps_adjust_active = True
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                 speed_adjust_active = False
@@ -185,6 +222,14 @@ while True:
                 size_adjust_active = False
             if event.key == pygame.K_1 or event.key == pygame.K_KP1:
                 angle_adjust_active = False
+            if event.key == pygame.K_4 or event.key == pygame.K_KP4:
+                motion_adjust_active = False
+            if event.key == pygame.K_6 or event.key == pygame.K_KP6:
+                axes_adjust_active = False
+            if event.key == pygame.K_5 or event.key == pygame.K_KP5:
+                theme_adjust_active = False
+            if event.key == pygame.K_7 or event.key == pygame.K_KP7:
+                fps_adjust_active = False
 
     # Handle speed adjustment if 3 is held
     if speed_adjust_active:
@@ -247,6 +292,79 @@ while True:
                 axis2_dy = axis1_dx
                 t_min, t_max = get_axis_limits()
 
+    # Handle motion type adjustment if 4 is held
+    if motion_adjust_active:
+        now = time.time()
+        if now - motion_adjust_last > motion_adjust_delay:
+            keys = pygame.key.get_pressed()
+            current_index = motion_types.index(args.motion)
+            if keys[pygame.K_RIGHT]:
+                new_index = (current_index + motion_step) % len(motion_types)
+                args.motion = motion_types[new_index]
+                motion_adjust_last = now
+                # Reset to start position when motion type changes
+                start_time = pygame.time.get_ticks()
+            elif keys[pygame.K_LEFT]:
+                new_index = (current_index - motion_step) % len(motion_types)
+                args.motion = motion_types[new_index]
+                motion_adjust_last = now
+                # Reset to start position when motion type changes
+                start_time = pygame.time.get_ticks()
+
+    # Handle axes amount adjustment if 6 is held
+    if axes_adjust_active:
+        now = time.time()
+        if now - axes_adjust_last > axes_adjust_delay:
+            keys = pygame.key.get_pressed()
+            current_index = axes_options.index(args.axes)
+            if keys[pygame.K_RIGHT]:
+                new_index = (current_index + axes_step) % len(axes_options)
+                args.axes = axes_options[new_index]
+                axes_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                new_index = (current_index - axes_step) % len(axes_options)
+                args.axes = axes_options[new_index]
+                axes_adjust_last = now
+
+    # Handle theme adjustment if 5 is held
+    if theme_adjust_active:
+        now = time.time()
+        if now - theme_adjust_last > theme_adjust_delay:
+            keys = pygame.key.get_pressed()
+            current_index = THEME_NAMES.index(args.theme)
+            if keys[pygame.K_RIGHT]:
+                new_index = (current_index + theme_step) % len(THEME_NAMES)
+                args.theme = THEME_NAMES[new_index]
+                # Update theme colors live
+                theme = THEMES[args.theme]
+                BACKGROUND_COLOR = theme['BACKGROUND_COLOR']
+                CIRCLE_COLOR = theme['CIRCLE_COLOR']
+                AXIS_COLOR = theme['AXIS_COLOR']
+                TEXT_COLOR = theme['TEXT_COLOR']
+                theme_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                new_index = (current_index - theme_step) % len(THEME_NAMES)
+                args.theme = THEME_NAMES[new_index]
+                # Update theme colors live
+                theme = THEMES[args.theme]
+                BACKGROUND_COLOR = theme['BACKGROUND_COLOR']
+                CIRCLE_COLOR = theme['CIRCLE_COLOR']
+                AXIS_COLOR = theme['AXIS_COLOR']
+                TEXT_COLOR = theme['TEXT_COLOR']
+                theme_adjust_last = now
+
+    # Handle fps cap adjustment if 7 is held
+    if fps_adjust_active:
+        now = time.time()
+        if now - fps_adjust_last > fps_adjust_delay:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_RIGHT]:
+                fps_cap = min(fps_cap + fps_step, max_fps)
+                fps_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                fps_cap = max(fps_cap - fps_step, min_fps)
+                fps_adjust_last = now
+
     # Update state
     current_time = pygame.time.get_ticks()
     elapsed = (current_time - start_time) / 1000.0
@@ -284,7 +402,7 @@ while True:
             f"Motion: {args.motion}",
             f"Theme: {args.theme}",
             f"Axes: {args.axes}",
-            #f"FPS: {fps_cap} / {fps}",
+            f"FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
             surf = font.render(line, True, TEXT_COLOR)
