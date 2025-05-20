@@ -5,6 +5,7 @@ import pygame.gfxdraw
 import sys
 import math
 import argparse
+import time
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Eye Scan Therapy')
@@ -126,6 +127,14 @@ def osc_func(t, motion_type):
     else:
         return t
 
+# Key state tracking for speed adjustment
+speed_step = 1  # 1 cHz per step
+min_speed = 1   # 0.01 Hz
+max_speed = 100  # 1 Hz
+speed_adjust_active = False
+speed_adjust_last = 0
+speed_adjust_delay = 0.15  # seconds between increments
+
 # Simulation loop
 show_dev = False
 start_time = pygame.time.get_ticks()
@@ -147,7 +156,36 @@ while True:
                 sys.exit()
             elif event.key == pygame.K_F1:
                 show_dev = not show_dev
-    
+            elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                speed_adjust_active = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                speed_adjust_active = False
+
+    # Handle speed adjustment if 3 is held
+    if speed_adjust_active:
+        now = time.time()
+        if now - speed_adjust_last > speed_adjust_delay:
+            keys = pygame.key.get_pressed()
+            # Save old period and elapsed before changing speed
+            old_speed = args.speed
+            old_period = 100.0 / old_speed if old_speed > 0 else 1.0
+            current_time = pygame.time.get_ticks()
+            elapsed = (current_time - start_time) / 1000.0
+            t_phase = (elapsed / old_period) % 1.0
+            if keys[pygame.K_RIGHT]:
+                args.speed = min(args.speed + speed_step, max_speed)
+                speed_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                args.speed = max(args.speed - speed_step, min_speed)
+                speed_adjust_last = now
+            # After changing speed, adjust start_time to preserve phase
+            new_period = 100.0 / args.speed if args.speed > 0 else 1.0
+            # new_elapsed = t_phase * new_period
+            # So, start_time = current_time - new_elapsed * 1000
+            new_elapsed = t_phase * new_period
+            start_time = current_time - int(new_elapsed * 1000)
+
     # Update state
     current_time = pygame.time.get_ticks()
     elapsed = (current_time - start_time) / 1000.0
@@ -184,6 +222,7 @@ while True:
             f"Speed: {args.speed} cHz",
             f"Motion: {args.motion}",
             f"Theme: {args.theme}",
+            f"Axes: {args.axes}",
             f"FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
