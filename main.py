@@ -10,7 +10,49 @@ parser.add_argument('--speed', type=float, default=300, help='Oscillation speed 
 parser.add_argument('--size', type=int, default=60, help='Diameter of the circle in pixels (default: 60)')
 parser.add_argument('--angle', type=float, default=0, help='Angle of the oscillation axis in degrees (default: 0)')
 parser.add_argument('--motion', type=str, default='sin', choices=['sin', 'triangle', 'square'], help='Oscillation type (sin, triangle, square)')
+parser.add_argument('--theme', type=str, default='ocean', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: ocean)')
 args = parser.parse_args()
+
+# Color themes for minimal eyestrain
+THEMES = {
+    'ocean': {
+        'BG_COLOR': (18, 24, 38),
+        'CIRCLE_COLOR': (180, 210, 255),
+        'AXIS_COLOR': (120, 170, 220),
+        'TEXT_COLOR': (120, 170, 220),
+    },
+    'forest': {
+        'BG_COLOR': (22, 32, 24),
+        'CIRCLE_COLOR': (170, 210, 160),
+        'AXIS_COLOR': (100, 160, 120),
+        'TEXT_COLOR': (100, 160, 120),
+    },
+    'desert': {
+        'BG_COLOR': (38, 32, 18),
+        'CIRCLE_COLOR': (230, 210, 160),
+        'AXIS_COLOR': (180, 160, 100),
+        'TEXT_COLOR': (180, 160, 100),
+    },
+    'night': {
+        'BG_COLOR': (12, 14, 18),
+        'CIRCLE_COLOR': (180, 180, 200),
+        'AXIS_COLOR': (80, 100, 140),
+        'TEXT_COLOR': (80, 100, 140),
+    },
+    'rose': {
+        'BG_COLOR': (32, 24, 28),
+        'CIRCLE_COLOR': (255, 200, 210),
+        'AXIS_COLOR': (200, 120, 140),
+        'TEXT_COLOR': (200, 120, 140),
+    },
+}
+
+# Select theme
+theme = THEMES[args.theme]
+BG_COLOR = theme['BG_COLOR']
+CIRCLE_COLOR = theme['CIRCLE_COLOR']
+AXIS_COLOR = theme['AXIS_COLOR']
+TEXT_COLOR = theme['TEXT_COLOR']
 
 # Pygame setup
 pygame.init()
@@ -20,11 +62,6 @@ clock = pygame.time.Clock()
 fps_cap = 60
 pygame.mouse.set_visible(False)
 
-
-# Colors
-BG_COLOR = (10, 10, 10)
-CIRCLE_COLOR = (255, 180, 60)
-AXIS_COLOR = (80, 200, 255)
 
 # Window and geometry
 width, height = screen.get_size()
@@ -129,10 +166,11 @@ while running:
             f"Size: {args.size} px",
             f"Speed: {args.speed} px/s",
             f"Motion: {args.motion}",
+            f"Theme: {args.theme}",
             f"FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
-            surf = font.render(line, True, (255,255,255))
+            surf = font.render(line, True, TEXT_COLOR)
             screen.blit(surf, (10, 10 + i*28))
     pygame.display.flip()
     clock.tick(fps_cap)
