@@ -176,5 +176,5 @@ cython_debug/
 # misc
 todo.txt
 settings.json
-stats.json
+statistics.json
 README.md
