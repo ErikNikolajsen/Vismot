@@ -135,6 +135,14 @@ speed_adjust_active = False
 speed_adjust_last = 0
 speed_adjust_delay = 0.15  # seconds between increments
 
+# Key state tracking for size adjustment
+size_step = 1  # pixels per step
+min_size = 1
+max_size = min(width, height)  # never allow the circle to be larger than the window
+size_adjust_active = False
+size_adjust_last = 0
+size_adjust_delay = 0.15  # seconds between increments
+
 # Simulation loop
 show_dev = False
 start_time = pygame.time.get_ticks()
@@ -158,9 +166,13 @@ while True:
                 show_dev = not show_dev
             elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
                 speed_adjust_active = True
+            elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                size_adjust_active = True
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                 speed_adjust_active = False
+            if event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                size_adjust_active = False
 
     # Handle speed adjustment if 3 is held
     if speed_adjust_active:
@@ -185,6 +197,23 @@ while True:
             # So, start_time = current_time - new_elapsed * 1000
             new_elapsed = t_phase * new_period
             start_time = current_time - int(new_elapsed * 1000)
+
+    # Handle size adjustment if 2 is held
+    if size_adjust_active:
+        now = time.time()
+        if now - size_adjust_last > size_adjust_delay:
+            keys = pygame.key.get_pressed()
+            old_size = args.size
+            if keys[pygame.K_RIGHT]:
+                args.size = min(args.size + size_step, max_size)
+                size_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                args.size = max(args.size - size_step, min_size)
+                size_adjust_last = now
+            if args.size != old_size:
+                radius = args.size // 2
+                # Recompute t_min, t_max to keep edge at window edge
+                t_min, t_max = get_axis_limits()
 
     # Update state
     current_time = pygame.time.get_ticks()
@@ -223,7 +252,7 @@ while True:
             f"Motion: {args.motion}",
             f"Theme: {args.theme}",
             f"Axes: {args.axes}",
-            f"FPS: {fps_cap} / {fps}",
+            #f"FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
             surf = font.render(line, True, TEXT_COLOR)
