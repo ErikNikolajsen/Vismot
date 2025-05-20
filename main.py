@@ -17,6 +17,7 @@ parser.add_argument('--motion', type=str, default='sine', choices=['sine', 'tria
 parser.add_argument('--theme', type=str, default='forest', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: ocean)')
 parser.add_argument('--axes', type=int, default=2, choices=[0, 1, 2], help='How many axes to display: 0, 1, or 2 (default: 2)')
 parser.add_argument('--fps', type=int, default=500, help='Frame rate cap (default: 500)')
+parser.add_argument('--amplitude', type=int, default=100, help='Oscillation amplitude as a percentage (0–100, default: 100)')
 args = parser.parse_args()
 
 # Extract argparse values into variables
@@ -27,6 +28,7 @@ motion = args.motion
 theme_name = args.theme
 axes = args.axes
 fps_cap = args.fps
+amplitude = args.amplitude
 
 # Persistent settings file
 SETTINGS_PATH = 'settings.json'
@@ -43,6 +45,7 @@ if os.path.exists(SETTINGS_PATH):
             theme_name = saved.get('theme', theme_name)
             axes = saved.get('axes', axes)
             fps_cap = saved.get('fps_cap', fps_cap)
+            amplitude = saved.get('amplitude', amplitude)
         except Exception:
             pass
 else:
@@ -58,7 +61,8 @@ def save_settings():
         'motion': motion,
         'theme': theme_name,
         'axes': axes,
-        'fps_cap': fps_cap
+        'fps_cap': fps_cap,
+        'amplitude': amplitude
     }
     if new_settings != saved:
         with open(SETTINGS_PATH, 'w') as f:
@@ -224,6 +228,14 @@ fps_adjust_active = False
 fps_adjust_last = 0
 fps_adjust_delay = 0.15  # seconds between increments
 
+# Key state tracking for amplitude adjustment
+amplitude_step = 1
+min_amplitude = 1
+max_amplitude = 100
+amplitude_adjust_active = False
+amplitude_adjust_last = 0
+amplitude_adjust_delay = 0.15  # seconds between increments
+
 # Simulation loop
 show_dev = False
 start_time = pygame.time.get_ticks()
@@ -261,6 +273,8 @@ while True:
                 theme_adjust_active = True
             elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
                 fps_adjust_active = True
+            elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
+                amplitude_adjust_active = True
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                 speed_adjust_active = False
@@ -276,6 +290,8 @@ while True:
                 theme_adjust_active = False
             if event.key == pygame.K_7 or event.key == pygame.K_KP7:
                 fps_adjust_active = False
+            if event.key == pygame.K_8 or event.key == pygame.K_KP8:
+                amplitude_adjust_active = False
 
     # Handle speed adjustment if 3 is held
     if speed_adjust_active:
@@ -403,14 +419,35 @@ while True:
                 fps_cap = max(fps_cap - fps_step, min_fps)
                 fps_adjust_last = now
 
+    # Handle amplitude adjustment if 8 is held
+    if amplitude_adjust_active:
+        now = time.time()
+        if now - amplitude_adjust_last > amplitude_adjust_delay:
+            keys = pygame.key.get_pressed()
+            old_amplitude = amplitude
+            if keys[pygame.K_RIGHT]:
+                amplitude = min(amplitude + amplitude_step, max_amplitude)
+                amplitude_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                amplitude = max(amplitude - amplitude_step, min_amplitude)
+                amplitude_adjust_last = now
+            if amplitude != old_amplitude:
+                pass
+
     # Update state
     current_time = pygame.time.get_ticks()
     elapsed = (current_time - start_time) / 1000.0
     axis_length = t_max - t_min
+    # Amplitude scaling: 100 = full range, 0 = no movement
+    amp_factor = amplitude / 100.0
+    amp_center = (t_max + t_min) / 2
+    amp_half = (t_max - t_min) / 2 * amp_factor
+    amp_min = amp_center - amp_half
+    amp_max = amp_center + amp_half
     period = 100.0 / speed if speed > 0 else 1.0
     t = (elapsed / period) % 1.0
     pos_factor = osc_func(t, motion)
-    pos = t_min + pos_factor * (t_max - t_min)
+    pos = amp_min + pos_factor * (amp_max - amp_min)
     cx = int(center[0] + axis1_dx * pos)
     cy = int(center[1] + axis1_dy * pos)
 
@@ -440,6 +477,7 @@ while True:
             f"Motion: {motion}",
             f"Theme: {theme_name}",
             f"Axes: {axes}",
+            f"Amplitude: {int(amplitude)}%",
             f"FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
