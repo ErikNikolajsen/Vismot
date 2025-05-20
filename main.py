@@ -6,7 +6,7 @@ import pygame.gfxdraw
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Eye Scan Therapy: Track a moving circle with your eyes.')
-parser.add_argument('--speed', type=float, default=300, help='Oscillation speed in pixels per second (default: 300)')
+parser.add_argument('--speed', type=float, default=25, help='Oscillation frequency in centihertz (default: 20)')
 parser.add_argument('--size', type=int, default=60, help='Diameter of the circle in pixels (default: 60)')
 parser.add_argument('--angle', type=float, default=0, help='Angle of the oscillation axis in degrees (default: 0)')
 parser.add_argument('--motion', type=str, default='sin', choices=['sin', 'triangle', 'square'], help='Oscillation type (sin, triangle, square)')
@@ -142,7 +142,7 @@ while running:
     now = pygame.time.get_ticks() / 1000.0
     elapsed = now - start_time
     axis_length = t_max - t_min
-    period = 2 * axis_length / args.speed if args.speed > 0 else 1
+    period = 100.0 / args.speed if args.speed > 0 else 1.0
     t = (elapsed / period) % 1.0
     pos_factor = osc_func(t, args.motion)
     pos = t_min + pos_factor * (t_max - t_min)
@@ -164,7 +164,7 @@ while running:
         dev_lines = [
             f"Angle: {args.angle}°",
             f"Size: {args.size} px",
-            f"Speed: {args.speed} px/s",
+            f"Speed: {args.speed} cHz",
             f"Motion: {args.motion}",
             f"Theme: {args.theme}",
             f"FPS: {fps_cap} / {fps}",
