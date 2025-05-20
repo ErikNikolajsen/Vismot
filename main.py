@@ -11,6 +11,7 @@ parser.add_argument('--size', type=int, default=60, help='Diameter of the circle
 parser.add_argument('--angle', type=float, default=0, help='Angle of the oscillation axis in degrees (default: 0)')
 parser.add_argument('--motion', type=str, default='sin', choices=['sin', 'triangle', 'square'], help='Oscillation type (sin, triangle, square)')
 parser.add_argument('--theme', type=str, default='ocean', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: ocean)')
+parser.add_argument('--axes', type=str, default='both', choices=['none', 'both', 'main'], help='Which axes to display: none, both, or main (default: both)')
 args = parser.parse_args()
 
 # Color themes for minimal eyestrain
@@ -154,8 +155,13 @@ while running:
     ax2 = (int(center[0] + axis_dx * axis_len), int(center[1] + axis_dy * axis_len))
     perp1 = (int(center[0] - perp_dx * axis_len), int(center[1] - perp_dy * axis_len))
     perp2 = (int(center[0] + perp_dx * axis_len), int(center[1] + perp_dy * axis_len))
-    pygame.draw.aaline(screen, AXIS_COLOR, ax1, ax2, 1)
-    pygame.draw.aaline(screen, AXIS_COLOR, perp1, perp2, 1)
+    # Draw axes according to user choice
+    if args.axes == 'both':
+        pygame.draw.aaline(screen, AXIS_COLOR, ax1, ax2, 1)
+        pygame.draw.aaline(screen, AXIS_COLOR, perp1, perp2, 1)
+    elif args.axes == 'main':
+        pygame.draw.aaline(screen, AXIS_COLOR, ax1, ax2, 1)
+    # if 'none', draw no axes
     pygame.gfxdraw.aacircle(screen, cx, cy, radius, CIRCLE_COLOR)
     pygame.gfxdraw.filled_circle(screen, cx, cy, radius, CIRCLE_COLOR)
     # Developer mode info
