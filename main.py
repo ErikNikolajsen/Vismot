@@ -17,7 +17,9 @@ pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption('Eye Scan Therapy')
 clock = pygame.time.Clock()
+fps_cap = 60
 pygame.mouse.set_visible(False)
+
 
 # Colors
 BG_COLOR = (10, 10, 10)
@@ -84,6 +86,10 @@ def osc_func(t, motion_type):
     else:
         return t
 
+# Developer mode toggle
+show_dev = False
+font = pygame.font.Font("assets/fonts/Roboto-Regular.ttf", 24)
+
 # Main loop
 start_time = pygame.time.get_ticks() / 1000.0
 running = True
@@ -94,6 +100,8 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 running = False
+            elif event.key == pygame.K_F1:
+                show_dev = not show_dev
     now = pygame.time.get_ticks() / 1000.0
     elapsed = now - start_time
     axis_length = t_max - t_min
@@ -113,8 +121,21 @@ while running:
     pygame.draw.aaline(screen, AXIS_COLOR, perp1, perp2, 1)
     pygame.gfxdraw.aacircle(screen, cx, cy, radius, CIRCLE_COLOR)
     pygame.gfxdraw.filled_circle(screen, cx, cy, radius, CIRCLE_COLOR)
+    # Developer mode info
+    if show_dev:
+        fps = int(clock.get_fps())
+        dev_lines = [
+            f"Angle: {args.angle}°",
+            f"Size: {args.size} px",
+            f"Speed: {args.speed} px/s",
+            f"Motion: {args.motion}",
+            f"FPS: {fps_cap} / {fps}",
+        ]
+        for i, line in enumerate(dev_lines):
+            surf = font.render(line, True, (255,255,255))
+            screen.blit(surf, (10, 10 + i*28))
     pygame.display.flip()
-    clock.tick(60)
+    clock.tick(fps_cap)
 
 pygame.quit()
 sys.exit()
