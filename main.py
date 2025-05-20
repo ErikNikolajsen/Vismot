@@ -143,6 +143,14 @@ size_adjust_active = False
 size_adjust_last = 0
 size_adjust_delay = 0.15  # seconds between increments
 
+# Key state tracking for angle adjustment
+angle_step = 1  # degrees per step
+min_angle = 0
+max_angle = 359
+angle_adjust_active = False
+angle_adjust_last = 0
+angle_adjust_delay = 0.15  # seconds between increments
+
 # Simulation loop
 show_dev = False
 start_time = pygame.time.get_ticks()
@@ -168,11 +176,15 @@ while True:
                 speed_adjust_active = True
             elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
                 size_adjust_active = True
+            elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
+                angle_adjust_active = True
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_3 or event.key == pygame.K_KP3:
                 speed_adjust_active = False
             if event.key == pygame.K_2 or event.key == pygame.K_KP2:
                 size_adjust_active = False
+            if event.key == pygame.K_1 or event.key == pygame.K_KP1:
+                angle_adjust_active = False
 
     # Handle speed adjustment if 3 is held
     if speed_adjust_active:
@@ -213,6 +225,26 @@ while True:
             if args.size != old_size:
                 radius = args.size // 2
                 # Recompute t_min, t_max to keep edge at window edge
+                t_min, t_max = get_axis_limits()
+
+    # Handle angle adjustment if 1 is held
+    if angle_adjust_active:
+        now = time.time()
+        if now - angle_adjust_last > angle_adjust_delay:
+            keys = pygame.key.get_pressed()
+            old_angle = args.angle
+            if keys[pygame.K_RIGHT]:
+                args.angle = min(args.angle + angle_step, max_angle)
+                angle_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                args.angle = max(args.angle - angle_step, min_angle)
+                angle_adjust_last = now
+            if args.angle != old_angle:
+                angle_rad = math.radians(args.angle)
+                axis1_dx = math.cos(angle_rad)
+                axis1_dy = math.sin(angle_rad)
+                axis2_dx = -axis1_dy
+                axis2_dy = axis1_dx
                 t_min, t_max = get_axis_limits()
 
     # Update state
