@@ -2,6 +2,7 @@ import pygame
 import sys
 import math
 import argparse
+import pygame.gfxdraw
 
 # Argument parsing
 parser = argparse.ArgumentParser(description='Eye Scan Therapy: Track a moving circle with your eyes.')
@@ -108,9 +109,10 @@ while running:
     ax2 = (int(center[0] + axis_dx * axis_len), int(center[1] + axis_dy * axis_len))
     perp1 = (int(center[0] - perp_dx * axis_len), int(center[1] - perp_dy * axis_len))
     perp2 = (int(center[0] + perp_dx * axis_len), int(center[1] + perp_dy * axis_len))
-    pygame.draw.line(screen, AXIS_COLOR, ax1, ax2, 3)
-    pygame.draw.line(screen, AXIS_COLOR, perp1, perp2, 2)
-    pygame.draw.circle(screen, CIRCLE_COLOR, (cx, cy), radius)
+    pygame.draw.aaline(screen, AXIS_COLOR, ax1, ax2, 1)
+    pygame.draw.aaline(screen, AXIS_COLOR, perp1, perp2, 1)
+    pygame.gfxdraw.aacircle(screen, cx, cy, radius, CIRCLE_COLOR)
+    pygame.gfxdraw.filled_circle(screen, cx, cy, radius, CIRCLE_COLOR)
     pygame.display.flip()
     clock.tick(60)
 
