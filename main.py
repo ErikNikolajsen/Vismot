@@ -237,13 +237,18 @@ amplitude_adjust_last = 0
 amplitude_adjust_delay = 0.15  # seconds between increments
 
 # Simulation loop
-show_dev = False
+show_dev = True
 start_time = pygame.time.get_ticks()
-axis_len = max(width, height)
-axis1_a = (int(center[0] - axis1_dx * axis_len), int(center[1] - axis1_dy * axis_len))
-axis1_b = (int(center[0] + axis1_dx * axis_len), int(center[1] + axis1_dy * axis_len))
-axis2_a = (int(center[0] - axis2_dx * axis_len), int(center[1] - axis2_dy * axis_len))
-axis2_b = (int(center[0] + axis2_dx * axis_len), int(center[1] + axis2_dy * axis_len))
+
+def compute_axis_endpoints():
+    axis_len = max(width, height)
+    axis1_endpoint_a = (int(center[0] - axis1_dx * axis_len), int(center[1] - axis1_dy * axis_len))
+    axis1_endpoint_b = (int(center[0] + axis1_dx * axis_len), int(center[1] + axis1_dy * axis_len))
+    axis2_endpoint_a = (int(center[0] - axis2_dx * axis_len), int(center[1] - axis2_dy * axis_len))
+    axis2_endpoint_b = (int(center[0] + axis2_dx * axis_len), int(center[1] + axis2_dy * axis_len))
+    return axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b
+
+axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
 
 while True:
     # Event handling
@@ -259,75 +264,39 @@ while True:
                 sys.exit()
             elif event.key == pygame.K_F1:
                 show_dev = not show_dev
-            elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
-                speed_adjust_active = True
-            elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
-                size_adjust_active = True
             elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
                 angle_adjust_active = True
+            elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                size_adjust_active = True
+            elif event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                speed_adjust_active = True
             elif event.key == pygame.K_4 or event.key == pygame.K_KP4:
                 motion_adjust_active = True
-            elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
-                axes_adjust_active = True
             elif event.key == pygame.K_5 or event.key == pygame.K_KP5:
                 theme_adjust_active = True
+            elif event.key == pygame.K_6 or event.key == pygame.K_KP6:
+                axes_adjust_active = True
             elif event.key == pygame.K_7 or event.key == pygame.K_KP7:
-                fps_adjust_active = True
-            elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
                 amplitude_adjust_active = True
+            elif event.key == pygame.K_8 or event.key == pygame.K_KP8:
+                fps_adjust_active = True
         elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_3 or event.key == pygame.K_KP3:
-                speed_adjust_active = False
-            if event.key == pygame.K_2 or event.key == pygame.K_KP2:
-                size_adjust_active = False
             if event.key == pygame.K_1 or event.key == pygame.K_KP1:
                 angle_adjust_active = False
+            if event.key == pygame.K_2 or event.key == pygame.K_KP2:
+                size_adjust_active = False
+            if event.key == pygame.K_3 or event.key == pygame.K_KP3:
+                speed_adjust_active = False
             if event.key == pygame.K_4 or event.key == pygame.K_KP4:
                 motion_adjust_active = False
-            if event.key == pygame.K_6 or event.key == pygame.K_KP6:
-                axes_adjust_active = False
             if event.key == pygame.K_5 or event.key == pygame.K_KP5:
                 theme_adjust_active = False
+            if event.key == pygame.K_6 or event.key == pygame.K_KP6:
+                axes_adjust_active = False
             if event.key == pygame.K_7 or event.key == pygame.K_KP7:
-                fps_adjust_active = False
-            if event.key == pygame.K_8 or event.key == pygame.K_KP8:
                 amplitude_adjust_active = False
-
-    # Handle speed adjustment if 3 is held
-    if speed_adjust_active:
-        now = time.time()
-        if now - speed_adjust_last > speed_adjust_delay:
-            keys = pygame.key.get_pressed()
-            old_speed = speed
-            old_period = 100.0 / old_speed if old_speed > 0 else 1.0
-            current_time = pygame.time.get_ticks()
-            elapsed = (current_time - start_time) / 1000.0
-            t_phase = (elapsed / old_period) % 1.0
-            if keys[pygame.K_RIGHT]:
-                speed = min(speed + speed_step, max_speed)
-                speed_adjust_last = now
-            elif keys[pygame.K_LEFT]:
-                speed = max(speed - speed_step, min_speed)
-                speed_adjust_last = now
-            new_period = 100.0 / speed if speed > 0 else 1.0
-            new_elapsed = t_phase * new_period
-            start_time = current_time - int(new_elapsed * 1000)
-
-    # Handle size adjustment if 2 is held
-    if size_adjust_active:
-        now = time.time()
-        if now - size_adjust_last > size_adjust_delay:
-            keys = pygame.key.get_pressed()
-            old_size = size
-            if keys[pygame.K_RIGHT]:
-                size = min(size + size_step, max_size)
-                size_adjust_last = now
-            elif keys[pygame.K_LEFT]:
-                size = max(size - size_step, min_size)
-                size_adjust_last = now
-            if size != old_size:
-                radius = size // 2
-                t_min, t_max = get_axis_limits()
+            if event.key == pygame.K_8 or event.key == pygame.K_KP8:
+                fps_adjust_active = False
 
     # Handle angle adjustment if 1 is held
     if angle_adjust_active:
@@ -349,6 +318,44 @@ while True:
                 axis2_dx = -axis1_dy
                 axis2_dy = axis1_dx
                 t_min, t_max = get_axis_limits()
+                axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
+
+    # Handle size adjustment if 2 is held
+    if size_adjust_active:
+        now = time.time()
+        if now - size_adjust_last > size_adjust_delay:
+            keys = pygame.key.get_pressed()
+            old_size = size
+            if keys[pygame.K_RIGHT]:
+                size = min(size + size_step, max_size)
+                size_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                size = max(size - size_step, min_size)
+                size_adjust_last = now
+            if size != old_size:
+                radius = size // 2
+                t_min, t_max = get_axis_limits()
+                axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
+
+    # Handle speed adjustment if 3 is held
+    if speed_adjust_active:
+        now = time.time()
+        if now - speed_adjust_last > speed_adjust_delay:
+            keys = pygame.key.get_pressed()
+            old_speed = speed
+            old_period = 100.0 / old_speed if old_speed > 0 else 1.0
+            current_time = pygame.time.get_ticks()
+            elapsed = (current_time - start_time) / 1000.0
+            t_phase = (elapsed / old_period) % 1.0
+            if keys[pygame.K_RIGHT]:
+                speed = min(speed + speed_step, max_speed)
+                speed_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                speed = max(speed - speed_step, min_speed)
+                speed_adjust_last = now
+            new_period = 100.0 / speed if speed > 0 else 1.0
+            new_elapsed = t_phase * new_period
+            start_time = current_time - int(new_elapsed * 1000)
 
     # Handle motion type adjustment if 4 is held
     if motion_adjust_active:
@@ -366,21 +373,6 @@ while True:
                 motion = motion_types[new_index]
                 motion_adjust_last = now
                 start_time = pygame.time.get_ticks()
-
-    # Handle axes amount adjustment if 6 is held
-    if axes_adjust_active:
-        now = time.time()
-        if now - axes_adjust_last > axes_adjust_delay:
-            keys = pygame.key.get_pressed()
-            current_index = axes_options.index(axes)
-            if keys[pygame.K_RIGHT]:
-                new_index = (current_index + axes_step) % len(axes_options)
-                axes = axes_options[new_index]
-                axes_adjust_last = now
-            elif keys[pygame.K_LEFT]:
-                new_index = (current_index - axes_step) % len(axes_options)
-                axes = axes_options[new_index]
-                axes_adjust_last = now
 
     # Handle theme adjustment if 5 is held
     if theme_adjust_active:
@@ -406,6 +398,21 @@ while True:
                 AXIS_COLOR = theme['AXIS_COLOR']
                 TEXT_COLOR = theme['TEXT_COLOR']
                 theme_adjust_last = now
+
+    # Handle axes amount adjustment if 6 is held
+    if axes_adjust_active:
+        now = time.time()
+        if now - axes_adjust_last > axes_adjust_delay:
+            keys = pygame.key.get_pressed()
+            current_index = axes_options.index(axes)
+            if keys[pygame.K_RIGHT]:
+                new_index = (current_index + axes_step) % len(axes_options)
+                axes = axes_options[new_index]
+                axes_adjust_last = now
+            elif keys[pygame.K_LEFT]:
+                new_index = (current_index - axes_step) % len(axes_options)
+                axes = axes_options[new_index]
+                axes_adjust_last = now
 
     # Handle fps cap adjustment if 7 is held
     if fps_adjust_active:
@@ -453,17 +460,12 @@ while True:
 
     # Rendering
     screen.fill(BACKGROUND_COLOR)
-    axis_len = max(width, height)
-    axis1_a = (int(center[0] - axis1_dx * axis_len), int(center[1] - axis1_dy * axis_len))
-    axis1_b = (int(center[0] + axis1_dx * axis_len), int(center[1] + axis1_dy * axis_len))
-    axis2_a = (int(center[0] - axis2_dx * axis_len), int(center[1] - axis2_dy * axis_len))
-    axis2_b = (int(center[0] + axis2_dx * axis_len), int(center[1] + axis2_dy * axis_len))
 
     if axes == 1:
-        pygame.draw.aaline(screen, AXIS_COLOR, axis1_a, axis1_b, 1)
+        pygame.draw.aaline(screen, AXIS_COLOR, axis1_endpoint_a, axis1_endpoint_b, 1)
     elif axes == 2:
-        pygame.draw.aaline(screen, AXIS_COLOR, axis1_a, axis1_b, 1)
-        pygame.draw.aaline(screen, AXIS_COLOR, axis2_a, axis2_b, 1)
+        pygame.draw.aaline(screen, AXIS_COLOR, axis1_endpoint_a, axis1_endpoint_b, 1)
+        pygame.draw.aaline(screen, AXIS_COLOR, axis2_endpoint_a, axis2_endpoint_b, 1)
 
     pygame.gfxdraw.aacircle(screen, cx, cy, radius, CIRCLE_COLOR)
     pygame.gfxdraw.filled_circle(screen, cx, cy, radius, CIRCLE_COLOR)
