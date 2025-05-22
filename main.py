@@ -14,10 +14,10 @@ parser.add_argument('--speed', type=float, default=25, help='Oscillation frequen
 parser.add_argument('--size', type=int, default=60, help='Diameter of the circle in pixels (default: 60)')
 parser.add_argument('--angle', type=float, default=90, help='Angle of the oscillation axis in degrees (default: 0)')
 parser.add_argument('--motion', type=str, default='sine', choices=['sine', 'triangle', 'square'], help='Oscillation type (sine, triangle, square)')
-parser.add_argument('--theme', type=str, default='forest', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: ocean)')
+parser.add_argument('--theme', type=str, default='forest', choices=['ocean', 'forest', 'desert', 'night', 'rose'], help='Color theme for the display (default: forest)')
 parser.add_argument('--axes', type=int, default=2, choices=[0, 1, 2], help='How many axes to display: 0, 1, or 2 (default: 2)')
-parser.add_argument('--fps', type=int, default=500, help='Frame rate cap (default: 500)')
-parser.add_argument('--amplitude', type=int, default=100, help='Oscillation amplitude as a percentage (0–100, default: 100)')
+parser.add_argument('--fps', type=int, default=144, help='Frame rate cap (default: 144)')
+parser.add_argument('--amplitude', type=int, default=100, help='Oscillation amplitude as a percentage (1–100, default: 100)')
 args = parser.parse_args()
 
 # Extract argparse values into variables
@@ -72,34 +72,34 @@ def save_settings():
 # Color themes for minimal eyestrain
 THEMES = {
     'ocean': {
-        'BACKGROUND_COLOR': (18, 24, 38),
-        'CIRCLE_COLOR': (180, 210, 255),
-        'AXIS_COLOR': (120, 170, 220),
-        'TEXT_COLOR': (120, 170, 220),
+        'BACKGROUND_COLOR': (22, 28, 34),      # Very deep blue-gray
+        'CIRCLE_COLOR': (110, 140, 160),       # Muted blue
+        'AXIS_COLOR': (70, 100, 120),          # Muted blue-gray
+        'TEXT_COLOR': (90, 120, 140),          # Muted blue-gray
     },
     'forest': {
-        'BACKGROUND_COLOR': (22, 32, 24),
-        'CIRCLE_COLOR': (170, 210, 160),
-        'AXIS_COLOR': (100, 160, 120),
-        'TEXT_COLOR': (100, 160, 120),
+        'BACKGROUND_COLOR': (26, 32, 26),      # Very deep green-gray
+        'CIRCLE_COLOR': (110, 140, 110),       # Muted green
+        'AXIS_COLOR': (70, 100, 80),           # Muted green-gray
+        'TEXT_COLOR': (90, 120, 100),          # Muted green-gray
     },
     'desert': {
-        'BACKGROUND_COLOR': (38, 32, 18),
-        'CIRCLE_COLOR': (230, 210, 160),
-        'AXIS_COLOR': (180, 160, 100),
-        'TEXT_COLOR': (180, 160, 100),
+        'BACKGROUND_COLOR': (34, 32, 26),      # Muted sand brown
+        'CIRCLE_COLOR': (150, 140, 100),       # Muted sand
+        'AXIS_COLOR': (100, 90, 60),           # Muted brown-gray
+        'TEXT_COLOR': (120, 110, 80),          # Muted brown-gray
     },
     'night': {
-        'BACKGROUND_COLOR': (12, 14, 18),
-        'CIRCLE_COLOR': (180, 180, 200),
-        'AXIS_COLOR': (80, 100, 140),
-        'TEXT_COLOR': (80, 100, 140),
+        'BACKGROUND_COLOR': (14, 16, 22),      # Very dark blue-gray
+        'CIRCLE_COLOR': (80, 90, 110),         # Muted gray-blue
+        'AXIS_COLOR': (50, 60, 80),            # Muted blue-gray
+        'TEXT_COLOR': (70, 80, 100),           # Muted blue-gray
     },
     'rose': {
-        'BACKGROUND_COLOR': (32, 24, 28),
-        'CIRCLE_COLOR': (255, 200, 210),
-        'AXIS_COLOR': (200, 120, 140),
-        'TEXT_COLOR': (200, 120, 140),
+        'BACKGROUND_COLOR': (32, 28, 30),      # Muted rose brown
+        'CIRCLE_COLOR': (140, 110, 120),       # Muted rose
+        'AXIS_COLOR': (100, 80, 90),           # Muted rose-gray
+        'TEXT_COLOR': (120, 100, 110),         # Muted rose-gray
     },
 }
 
@@ -116,7 +116,7 @@ screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption('Eye Scan Therapy')
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
-font = pygame.font.Font("assets/fonts/Roboto-Regular.ttf", 24)
+font_roboto = pygame.font.Font("assets/fonts/Roboto-Regular.ttf", 24)
 
 # Window and geometry
 width, height = screen.get_size()
@@ -140,20 +140,20 @@ def get_axis_limits():
     # x = center[0] + axis1_dx * t, y = center[1] + axis1_dy * t
     # For left/right edges:
     if axis1_dx != 0:
-        for x_edge in [radius, width - radius]:
+        for x_edge in [radius, width - radius - 1]:
             t = (x_edge - center[0]) / axis1_dx
             y = center[1] + axis1_dy * t
-            if radius <= y <= height - radius:
+            if radius <= y <= height - radius - 1:
                 if t > 0:
                     t_pos.append(t)
                 else:
                     t_neg.append(t)
     # For top/bottom edges:
     if axis1_dy != 0:
-        for y_edge in [radius, height - radius]:
+        for y_edge in [radius, height - radius - 1]:
             t = (y_edge - center[1]) / axis1_dy
             x = center[0] + axis1_dx * t
-            if radius <= x <= width - radius:
+            if radius <= x <= width - radius - 1:
                 if t > 0:
                     t_pos.append(t)
                 else:
@@ -473,17 +473,17 @@ while True:
     if show_dev:
         fps = int(clock.get_fps())
         dev_lines = [
-            f"Angle: {int(round(angle % 180))}°",
-            f"Size: {size} px",
-            f"Speed: {speed} cHz",
-            f"Motion: {motion}",
-            f"Theme: {theme_name}",
-            f"Axes: {axes}",
-            f"Amplitude: {int(amplitude)}%",
-            f"FPS: {fps_cap} / {fps}",
+            f"1 | Angle: {int(round(angle % 180))}°",
+            f"2 | Size: {size} px",
+            f"3 | Speed: {speed} cHz",
+            f"4 | Motion: {motion}",
+            f"5 | Theme: {theme_name}",
+            f"6 | Axes: {axes}",
+            f"7 | Amplitude: {int(amplitude)}%",
+            f"8 | FPS: {fps_cap} / {fps}",
         ]
         for i, line in enumerate(dev_lines):
-            surf = font.render(line, True, TEXT_COLOR)
+            surf = font_roboto.render(line, True, TEXT_COLOR)
             screen.blit(surf, (10, 10 + i*28))
     pygame.display.flip()
 
