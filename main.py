@@ -159,11 +159,18 @@ def get_axis_limits():
                 else:
                     t_neg.append(t)
     # Choose the smallest positive and largest negative t
-    t_min = max([t for t in t_neg if t < 0], default=-min(width, height))
-    t_max = min([t for t in t_pos if t > 0], default=min(width, height))
-    return t_min, t_max
+    axis_min_pos = max([t for t in t_neg if t < 0], default=-min(width, height))
+    axis_max_pos = min([t for t in t_pos if t > 0], default=min(width, height))
+    return axis_min_pos, axis_max_pos
 
-t_min, t_max = get_axis_limits()
+# Compute axes endpoints for rendering purposes
+def compute_axis_endpoints():
+    axis_len = max(width, height)
+    axis1_endpoint_a = (int(center[0] - axis1_dx * axis_len), int(center[1] - axis1_dy * axis_len))
+    axis1_endpoint_b = (int(center[0] + axis1_dx * axis_len), int(center[1] + axis1_dy * axis_len))
+    axis2_endpoint_a = (int(center[0] - axis2_dx * axis_len), int(center[1] - axis2_dy * axis_len))
+    axis2_endpoint_b = (int(center[0] + axis2_dx * axis_len), int(center[1] + axis2_dy * axis_len))
+    return axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b
 
 # Oscillation functions
 def osc_func(t, motion_type):
@@ -177,13 +184,11 @@ def osc_func(t, motion_type):
     else:
         return t
 
-# Key state tracking for speed adjustment
-speed_step = 1  # 1 cHz per step
-min_speed = 1   # 0.01 Hz
-max_speed = 100  # 1 Hz
-speed_adjust_active = False
-speed_adjust_last = 0
-speed_adjust_delay = 0.15  # seconds between increments
+# Key state tracking for angle adjustment
+angle_step = 1  # degrees per step
+angle_adjust_active = False
+angle_adjust_last = 0
+angle_adjust_delay = 0.15  # seconds between increments
 
 # Key state tracking for size adjustment
 size_step = 1  # pixels per step
@@ -193,11 +198,13 @@ size_adjust_active = False
 size_adjust_last = 0
 size_adjust_delay = 0.15  # seconds between increments
 
-# Key state tracking for angle adjustment
-angle_step = 1  # degrees per step
-angle_adjust_active = False
-angle_adjust_last = 0
-angle_adjust_delay = 0.15  # seconds between increments
+# Key state tracking for speed adjustment
+speed_step = 1  # 1 cHz per step
+min_speed = 1   # 0.01 Hz
+max_speed = 100  # 1 Hz
+speed_adjust_active = False
+speed_adjust_last = 0
+speed_adjust_delay = 0.15  # seconds between increments
 
 # Key state tracking for motion type adjustment
 motion_types = ['sine', 'triangle', 'square']
@@ -206,13 +213,6 @@ motion_adjust_active = False
 motion_adjust_last = 0
 motion_adjust_delay = 0.15  # seconds between increments
 
-# Key state tracking for axes adjustment
-axes_options = [0, 1, 2]
-axes_step = 1
-axes_adjust_active = False
-axes_adjust_last = 0
-axes_adjust_delay = 0.15  # seconds between increments
-
 # Key state tracking for theme adjustment
 THEME_NAMES = list(THEMES.keys())
 theme_step = 1
@@ -220,13 +220,12 @@ theme_adjust_active = False
 theme_adjust_last = 0
 theme_adjust_delay = 0.15  # seconds between increments
 
-# Key state tracking for fps cap adjustment
-fps_step = 10
-min_fps = 30
-max_fps = 1000
-fps_adjust_active = False
-fps_adjust_last = 0
-fps_adjust_delay = 0.15  # seconds between increments
+# Key state tracking for axes adjustment
+axes_options = [0, 1, 2]
+axes_step = 1
+axes_adjust_active = False
+axes_adjust_last = 0
+axes_adjust_delay = 0.15  # seconds between increments
 
 # Key state tracking for amplitude adjustment
 amplitude_step = 1
@@ -236,19 +235,19 @@ amplitude_adjust_active = False
 amplitude_adjust_last = 0
 amplitude_adjust_delay = 0.15  # seconds between increments
 
+# Key state tracking for fps cap adjustment
+fps_step = 10
+min_fps = 30
+max_fps = 1000
+fps_adjust_active = False
+fps_adjust_last = 0
+fps_adjust_delay = 0.15  # seconds between increments
+
 # Simulation loop
+axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
+axis_min_pos, axis_max_pos = get_axis_limits()
 show_dev = True
 start_time = pygame.time.get_ticks()
-
-def compute_axis_endpoints():
-    axis_len = max(width, height)
-    axis1_endpoint_a = (int(center[0] - axis1_dx * axis_len), int(center[1] - axis1_dy * axis_len))
-    axis1_endpoint_b = (int(center[0] + axis1_dx * axis_len), int(center[1] + axis1_dy * axis_len))
-    axis2_endpoint_a = (int(center[0] - axis2_dx * axis_len), int(center[1] - axis2_dy * axis_len))
-    axis2_endpoint_b = (int(center[0] + axis2_dx * axis_len), int(center[1] + axis2_dy * axis_len))
-    return axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b
-
-axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
 
 while True:
     # Event handling
@@ -317,7 +316,7 @@ while True:
                 axis1_dy = -math.sin(angle_rad)
                 axis2_dx = -axis1_dy
                 axis2_dy = axis1_dx
-                t_min, t_max = get_axis_limits()
+                axis_min_pos, axis_max_pos = get_axis_limits()
                 axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
 
     # Handle size adjustment if 2 is held
@@ -334,7 +333,7 @@ while True:
                 size_adjust_last = now
             if size != old_size:
                 radius = size // 2
-                t_min, t_max = get_axis_limits()
+                axis_min_pos, axis_max_pos = get_axis_limits()
                 axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
 
     # Handle speed adjustment if 3 is held
@@ -444,14 +443,13 @@ while True:
     # Update state
     current_time = pygame.time.get_ticks()
     elapsed = (current_time - start_time) / 1000.0
-    axis_length = t_max - t_min
     # Amplitude scaling: 100 = full range, 0 = no movement
     amp_factor = amplitude / 100.0
-    amp_center = (t_max + t_min) / 2
-    amp_half = (t_max - t_min) / 2 * amp_factor
+    amp_center = (axis_max_pos + axis_min_pos) / 2
+    amp_half = (axis_max_pos - axis_min_pos) / 2 * amp_factor
     amp_min = amp_center - amp_half
     amp_max = amp_center + amp_half
-    period = 100.0 / speed if speed > 0 else 1.0
+    period = 100.0 / speed
     t = (elapsed / period) % 1.0
     pos_factor = osc_func(t, motion)
     pos = amp_min + pos_factor * (amp_max - amp_min)
