@@ -188,7 +188,7 @@ speed_adjust_delay = 0.15  # seconds between increments
 # Key state tracking for size adjustment
 size_step = 1  # pixels per step
 min_size = 1
-max_size = min(width, height)  # never allow the circle to be larger than the window
+max_size = min(width, height)-3  # never allow the circle to be larger than the window
 size_adjust_active = False
 size_adjust_last = 0
 size_adjust_delay = 0.15  # seconds between increments
