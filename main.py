@@ -112,7 +112,8 @@ TEXT_COLOR = theme['TEXT_COLOR']
 
 # Pygame setup
 pygame.init()
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE, vsync=1)
+#screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption('Eye Scan Therapy')
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
@@ -247,7 +248,7 @@ fps_adjust_delay = 0.15  # seconds between increments
 axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
 axis_min_pos, axis_max_pos = get_axis_limits()
 show_dev = True
-start_time = pygame.time.get_ticks()
+start_time = pygame.time.get_ticks() / 1000.0
 
 while True:
     # Event handling
@@ -342,9 +343,9 @@ while True:
         if now - speed_adjust_last > speed_adjust_delay:
             keys = pygame.key.get_pressed()
             old_speed = speed
-            old_period = 100.0 / old_speed if old_speed > 0 else 1.0
-            current_time = pygame.time.get_ticks()
-            elapsed = (current_time - start_time) / 1000.0
+            old_period = 100.0 / old_speed
+            current_time = pygame.time.get_ticks() / 1000.0
+            elapsed = (current_time - start_time)
             t_phase = (elapsed / old_period) % 1.0
             if keys[pygame.K_RIGHT]:
                 speed = min(speed + speed_step, max_speed)
@@ -352,9 +353,9 @@ while True:
             elif keys[pygame.K_LEFT]:
                 speed = max(speed - speed_step, min_speed)
                 speed_adjust_last = now
-            new_period = 100.0 / speed if speed > 0 else 1.0
+            new_period = 100.0 / speed
             new_elapsed = t_phase * new_period
-            start_time = current_time - int(new_elapsed * 1000)
+            start_time = current_time - new_elapsed  # Use float, not int
 
     # Handle motion type adjustment if 4 is held
     if motion_adjust_active:
@@ -366,12 +367,12 @@ while True:
                 new_index = (current_index + motion_step) % len(motion_types)
                 motion = motion_types[new_index]
                 motion_adjust_last = now
-                start_time = pygame.time.get_ticks()
+                start_time = pygame.time.get_ticks() / 1000.0  # Reset position
             elif keys[pygame.K_LEFT]:
                 new_index = (current_index - motion_step) % len(motion_types)
                 motion = motion_types[new_index]
                 motion_adjust_last = now
-                start_time = pygame.time.get_ticks()
+                start_time = pygame.time.get_ticks() / 1000.0  # Reset position
 
     # Handle theme adjustment if 5 is held
     if theme_adjust_active:
@@ -441,8 +442,8 @@ while True:
                 pass
 
     # Update state
-    current_time = pygame.time.get_ticks()
-    elapsed = (current_time - start_time) / 1000.0
+    current_time = pygame.time.get_ticks() / 1000.0
+    elapsed = (current_time - start_time)
     # Amplitude scaling: 100 = full range, 0 = no movement
     amp_factor = amplitude / 100.0
     amp_center = (axis_max_pos + axis_min_pos) / 2
@@ -469,7 +470,6 @@ while True:
     pygame.gfxdraw.filled_circle(screen, cx, cy, radius, CIRCLE_COLOR)
 
     if show_dev:
-        fps = int(clock.get_fps())
         dev_lines = [
             f"1 | Angle: {int(round(angle % 180))}°",
             f"2 | Size: {size} px",
@@ -478,7 +478,7 @@ while True:
             f"5 | Theme: {theme_name}",
             f"6 | Axes: {axes}",
             f"7 | Amplitude: {int(amplitude)}%",
-            f"8 | FPS: {fps_cap} / {fps}",
+            f"8 | FPS: {fps_cap} / {clock.get_fps()}",
         ]
         for i, line in enumerate(dev_lines):
             surf = font_roboto.render(line, True, TEXT_COLOR)
@@ -486,4 +486,5 @@ while True:
     pygame.display.flip()
 
     # Cap the frame rate
-    clock.tick(fps_cap)
+    #clock.tick(fps_cap)
+    #clock.tick_busy_loop(fps_cap) # more accurate clock for framerate, but more computationally expensive
