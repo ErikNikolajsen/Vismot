@@ -1,5 +1,5 @@
 import os
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1"
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "1" # hides pygame cli print
 import pygame
 import pygame.gfxdraw
 import sys
@@ -247,7 +247,7 @@ fps_adjust_delay = 0.15  # seconds between increments
 # Simulation loop
 axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
 axis_min_pos, axis_max_pos = get_axis_limits()
-show_dev = True
+show_dev = False
 start_time = pygame.time.get_ticks() / 1000.0
 
 while True:
@@ -262,7 +262,7 @@ while True:
                 save_settings()
                 pygame.quit()
                 sys.exit()
-            elif event.key == pygame.K_F1:
+            elif event.key == pygame.K_SPACE:
                 show_dev = not show_dev
             elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
                 angle_adjust_active = True
@@ -478,8 +478,7 @@ while True:
             f"5 | Theme: {theme_name}",
             f"6 | Axes: {axes}",
             f"7 | Amplitude: {int(amplitude)}%",
-            f"8 | FPS: {fps_cap} / {clock.get_fps()}",
-        ]
+            ]
         for i, line in enumerate(dev_lines):
             surf = font_roboto.render(line, True, TEXT_COLOR)
             screen.blit(surf, (10, 10 + i*28))
@@ -488,3 +487,5 @@ while True:
     # Cap the frame rate
     #clock.tick(fps_cap)
     #clock.tick_busy_loop(fps_cap) # more accurate clock for framerate, but more computationally expensive
+
+            #f"8 | FPS: {fps_cap} / {clock.get_fps()}",
