@@ -264,6 +264,22 @@ while True:
                 sys.exit()
             elif event.key == pygame.K_SPACE:
                 show_dev = not show_dev
+            elif event.key == pygame.K_r:
+                # Rotate angle by 90°: subtract if angle >= 90, otherwise add
+                old_angle = angle
+                if angle >= 90:
+                    angle = angle - 90
+                else:
+                    angle = angle + 90
+                angle = angle % 360
+                if angle != old_angle:
+                    angle_rad = math.radians(angle)
+                    axis1_dx = math.cos(angle_rad)
+                    axis1_dy = -math.sin(angle_rad)
+                    axis2_dx = -axis1_dy
+                    axis2_dy = axis1_dx
+                    axis_min_pos, axis_max_pos = get_axis_limits()
+                    axis1_endpoint_a, axis1_endpoint_b, axis2_endpoint_a, axis2_endpoint_b = compute_axis_endpoints()
             elif event.key == pygame.K_1 or event.key == pygame.K_KP1:
                 angle_adjust_active = True
             elif event.key == pygame.K_2 or event.key == pygame.K_KP2:
@@ -471,6 +487,7 @@ while True:
 
     if show_dev:
         dev_lines = [
+            f"Settings:",
             f"1 | Angle: {int(round(angle % 180))}°",
             f"2 | Size: {size} px",
             f"3 | Speed: {speed} cHz",
