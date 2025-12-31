@@ -173,9 +173,8 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
-# misc
+# program specific files
 todo.txt
 settings.json
-statistics.json
-README.md
 test.py
+session_log.csv
