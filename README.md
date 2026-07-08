@@ -1,4 +1,4 @@
-# Vismot <img src="assets/images/vismot.svg" align="right" width="140" alt="Vismot logo">
+# <img src="assets/images/vismot.svg" alt="Vismot logo" width="45" align="texttop"> Vismot 
 Vismot is a tool designed to elicit linear smooth pursuit and saccadic eye movements in a controlled and standardised manner for research and therapeutic applications.
 
 ## Usage
