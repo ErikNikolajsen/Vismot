@@ -8,8 +8,19 @@ import argparse
 import time
 import json
 
+# Path helper
+def get_resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+
+    return os.path.join(base_path, relative_path)
+
 # Argument parsing
-parser = argparse.ArgumentParser(description='Eye Scan Therapy')
+parser = argparse.ArgumentParser(description='Vismot')
 parser.add_argument('--speed', type=float, default=25, help='Oscillation frequency in centihertz (default: 20)')
 parser.add_argument('--size', type=int, default=60, help='Diameter of the circle in pixels (default: 60)')
 parser.add_argument('--angle', type=float, default=90, help='Angle of the oscillation axis in degrees (default: 0)')
@@ -114,10 +125,11 @@ TEXT_COLOR = theme['TEXT_COLOR']
 pygame.init()
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE, vsync=1)
 #screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-pygame.display.set_caption('Eye Scan Therapy')
+pygame.display.set_caption('Vismot')
 pygame.mouse.set_visible(False)
 clock = pygame.time.Clock()
-font_roboto = pygame.font.Font("assets/fonts/Roboto-Regular.ttf", 24)
+#font_roboto = pygame.font.Font("assets/fonts/Roboto-Regular.ttf", 24
+font_roboto = pygame.font.Font(get_resource_path("assets/fonts/Roboto-Regular.ttf"), 24)
 
 # Window and geometry
 width, height = screen.get_size()

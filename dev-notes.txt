@@ -1,0 +1,65 @@
+# Developer notes
+
+## Compilation
+
+pyinstaller --name="Vismot" --icon="assets/icons/vismot.ico" --add-data "assets;assets" --add-data "settings.json;." vismot.py
+
+## To-Do
+* pause at peak
+* streamed radio (e.g. Ambient Sleeping Pill)
+* audiobooks
+* background video
+* auditory or visual stimuly on edge hit to prompt blinking
+* progress timer or progress bar based on preset time-goal
+* real time clock
+* timer 
+* main screen
+* statistics (average spent time, total spent time, cummulative oscillations, streak)
+* logged history (session-id, datetime, spent-time, oscillations)
+* live current session statistics
+* pause popup on space
+* swinging effect
+* induce effect similar to shifters or moving train (Optokinetic response - see OKN drum) https://www.dizziness-and-balance.com/practice/nystagmus/okn.htm
+* Degree finding tool https://visiongains.io/astigmatism
+* saccades like the tibetan wheel
+* reading mode
+* color intensity
+* blit the circle to avoid redrawing each time
+* update only necessary parts of the screen for better performance
+* movement types (smooth pursuit, saccades, saccade sequence)
+* More oscilating movement types are sinosoidal motion, triangle motion, trapezoid motion, saw motion (ramp up), saw motion (ramp down), and square motion.
+
+Damped Oscillation
+Like simple harmonic motion but amplitude decreases over time, simulating friction or resistance.
+
+Driven (Forced) Oscillation
+Oscillation influenced by an external periodic force, possibly causing resonance.
+
+Sawtooth or Triangle Wave Motion
+The circle moves linearly from one edge to the other and snaps back (sawtooth) or reverses direction linearly (triangle).
+
+Random Step Oscillation
+The circle jumps to random points along the axis, pausing between jumps.
+
+Nonlinear Oscillation
+E.g., motion governed by sine of sine or other nonlinear functions for more complex patterns.
+
+Lissajous Curve Oscillation
+Moving along two perpendicular simple harmonic motions at different frequencies to create a looping pattern.
+
+Exponential Oscillation
+Motion where displacement grows or shrinks exponentially with time.
+
+Chaotic Oscillation
+Using a chaotic function (like logistic map values) to determine position — unpredictable yet deterministic.
+
+
+## DONE:
+* edit angle adjustment max values
+* persistent settings
+* remove pygame print when run in cmd
+* padding to adjust wideness of oscillation (amplitude)
+* wide saccadic movement
+* vsync
+* executable with icon
+* add icon to executable

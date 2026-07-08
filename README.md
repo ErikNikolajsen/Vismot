@@ -2,7 +2,7 @@
 Vismot is a tool designed to elicit linear smooth pursuit and saccadic eye movements in a controlled and standardised manner for research and therapeutic applications.
 
 ## Usage
-Upon running the program the user is presented with a visual target in the form of a circle that oscillates. Pressing `space` toggles the display of an enumerated list of definable settings, and pressing the number corresponding to a specific setting while pressing `left` or `right` will change the value of said setting. 
+Upon running the program the user is presented with a visual target in the form of a circle that oscillates. Pressing `space` toggles the display of an enumerated list of definable settings, and pressing the number corresponding to a specific setting while pressing `left` or `right` will change the value of said setting.
 
 The settings are as follows:
 1.  **Angle** defines the angle of the linear oscillation. One can also press `r` to quickly inverse this angle.
@@ -15,14 +15,19 @@ The settings are as follows:
 
 These settings are retained across sessions and can be shared via the `settings.json' file for replication purposes.
 
-## Requirements
-- Python 3.10+ (tested on 3.11)
-- Pygame (tested on 2.6.1)
-
 ## Installation
 
-1. Install Python
-2. Install Pygame via.:
+### For Windows Users (Download & Run)
+
+1. Go to the [Releases](https://github.com/ErikNikolajsen/Vismot/releases) page.
+2. Download the latest `Vismot.zip` file.
+3. Extract the ZIP archive anywhere on your PC.
+4. Double-click `Vismot.exe` to run the application.
+
+### For Developers (Run from Code)
+
+1. Install Python (tested to work on 3.11)
+2. Install Pygame (tested to work on 2.6.1) via:
 ```sh
 pip install pygame
 ```
@@ -32,5 +37,10 @@ pip install pygame
 python main.py
 ```
 
+
 ## Support
 Please contact <erik.nikolajsen@gmail.com> for enquiries concerning the application.
+
+## License
+See the [LICENSE](https://github.com/ErikNikolajsen/Vismot/blob/main/LICENSE.txt) file.
+
