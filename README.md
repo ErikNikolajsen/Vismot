@@ -1,3 +1,4 @@
+
 # <img src="assets/images/vismot.svg" alt="Vismot logo" width="45" align="texttop"> Vismot 
 Vismot is a tool designed to elicit smooth pursuit and saccadic eye movements in a controlled and standardised manner for research and therapeutic applications.
 
@@ -36,9 +37,11 @@ pip install pygame
 ```sh
 python main.py
 ```
+## Citation
+If this software is used in the production of published research, then please cite the work as described in the [CITATION](CITATION.cff) file.
 
 ## License
-This project is proprietary. All rights are reserved by the copyright holder. For full details, please refer to the [LICENSE](https://github.com/ErikNikolajsen/Vismot/blob/main/LICENSE.txt) file.
+This project is proprietary. All rights are reserved by the copyright holder. Refer to the [LICENSE](LICENSE.txt) file for full details.
 
 ## Support
-Please contact <erik.nikolajsen@gmail.com> for enquiries concerning the application.
+Contact <erik.nikolajsen@gmail.com> for enquiries concerning the application.
