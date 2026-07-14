@@ -10,9 +10,7 @@ import json
 
 # Path helper
 def get_resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
     try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.dirname(os.path.abspath(__file__))
@@ -123,6 +121,8 @@ TEXT_COLOR = theme['TEXT_COLOR']
 
 # Pygame setup
 pygame.init()
+app_icon = pygame.image.load(get_resource_path("assets/icons/vismot_32px.png"))
+pygame.display.set_icon(app_icon)
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN | pygame.DOUBLEBUF | pygame.HWSURFACE, vsync=1)
 #screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption('Vismot')

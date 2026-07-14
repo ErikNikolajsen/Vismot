@@ -1,11 +1,11 @@
 # <img src="assets/images/vismot.svg" alt="Vismot logo" width="45" align="texttop"> Vismot 
-Vismot is a tool designed to elicit linear smooth pursuit and saccadic eye movements in a controlled and standardised manner for research and therapeutic applications.
+Vismot is a tool designed to elicit smooth pursuit and saccadic eye movements in a controlled and standardised manner for research and therapeutic applications.
 
 ## Usage
 Upon running the program the user is presented with a visual target in the form of a circle that oscillates. Pressing `space` toggles the display of an enumerated list of definable settings, and pressing the number corresponding to a specific setting while pressing `left` or `right` will change the value of said setting.
 
 The settings are as follows:
-1.  **Angle** defines the angle of the linear oscillation. One can also press `r` to quickly inverse this angle.
+1.  **Angle** defines the angle of the linear oscillation. One can also press `r` to quickly rotate this angle 90 degrees.
 2. **Size** defines the diameter in pixels of the visual target.
 3. **Speed** defines frequency of the oscillation.
 4. **Motion** defines the waveform of the oscillation. Here the sine and triangle wave will elicit smooth pursuit eye movements, while the square wave will elicit saccadic eye movements.
@@ -37,9 +37,8 @@ pip install pygame
 python main.py
 ```
 
+## License
+This project is proprietary. All rights are reserved by the copyright holder. For full details, please refer to the [LICENSE](https://github.com/ErikNikolajsen/Vismot/blob/main/LICENSE.txt) file.
 
 ## Support
 Please contact <erik.nikolajsen@gmail.com> for enquiries concerning the application.
-
-## License
-This project is proprietary. All rights are reserved by the copyright holder. For full details, please refer to the [LICENSE](https://github.com/ErikNikolajsen/Vismot/blob/main/LICENSE.txt) file.

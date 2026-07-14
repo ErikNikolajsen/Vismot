@@ -2,7 +2,8 @@
 
 ## Compilation
 
-pyinstaller --name="Vismot" --icon="assets/icons/vismot.ico" --add-data "assets;assets" --add-data "settings.json;." vismot.py
+pyinstaller --name="Vismot" --icon="assets/icons/vismot_256px.ico" --add-data "assets;assets" --add-data "settings.json;." --noconsole --onedir --clean vismot.py
+
 
 ## To-Do
 * pause at peak
@@ -28,6 +29,7 @@ pyinstaller --name="Vismot" --icon="assets/icons/vismot.ico" --add-data "assets;
 * update only necessary parts of the screen for better performance
 * movement types (smooth pursuit, saccades, saccade sequence)
 * More oscilating movement types are sinosoidal motion, triangle motion, trapezoid motion, saw motion (ramp up), saw motion (ramp down), and square motion.
+* save settings.json in appdata and compile to onefile
 
 Damped Oscillation
 Like simple harmonic motion but amplitude decreases over time, simulating friction or resistance.
